@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 """Download Sentinel-1 GRD backscatter scenes over Bodmin Moor from Google Earth Engine.
 
-Every scene in the date range that covers the study area is exported as a
-single-band GeoTIFF (sigma0 in dB) on one fixed grid, so the files stack
+Every satellite pass in the date range that covers the study area is exported
+as a single-band GeoTIFF (sigma0 in dB) on one fixed grid, so the files stack
 pixel-for-pixel for time-series and per-pixel trend analysis. An index.csv
-records each scene's acquisition time, platform, orbit pass and relative orbit,
+records each pass's acquisition time, platform, orbit pass and relative orbit,
 so the analysis can restrict itself to a single viewing geometry.
+
+Earth Engine stores each pass as consecutive ~25 s slices (scenes). Where the
+study area straddles a slice boundary (e.g. ascending relative orbit 1 over
+Bodmin Moor), the slices of that pass are grouped by platform and absolute
+orbit number and mosaicked into one image. A pass is kept if its combined
+footprint covers at least --min-coverage of the study area. Earth Engine's
+slices leave a 1-2 pixel gap of no data at their shared boundary; it is kept as
+nodata rather than interpolated (~0.1% of pixels, position varies by date).
 
 Data: COPERNICUS/S1_GRD (IW mode). Earth Engine has already applied thermal
 noise removal, radiometric calibration, terrain correction (SRTM 30 m) and
@@ -16,7 +24,7 @@ Usage
     # once per machine (localhost mode avoids gcloud; see README)
     earthengine authenticate --auth_mode=localhost
 
-    # list the matching scenes and per-orbit counts without downloading
+    # list the matching passes and per-orbit counts without downloading
     python code/download_s1.py --project my-gee-project --dry-run
 
     # download everything (all orbits) to code/data/s1_VV
@@ -38,7 +46,6 @@ import math
 import os
 import sys
 import time
-from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -79,7 +86,7 @@ def load_aoi(path: str | None, bbox: list[float] | None) -> ee.Geometry:
     return ee.Geometry.Rectangle(list(bbox or DEFAULT_BBOX))
 
 
-def build_collection(aoi, start, end, pol, orbit_pass, rel_orbits, allow_partial):
+def build_collection(aoi, start, end, pol, orbit_pass, rel_orbits):
     col = (
         ee.ImageCollection(COLLECTION)
         .filterBounds(aoi)
@@ -91,22 +98,25 @@ def build_collection(aoi, start, end, pol, orbit_pass, rel_orbits, allow_partial
         col = col.filter(ee.Filter.eq("orbitProperties_pass", orbit_pass))
     if rel_orbits:
         col = col.filter(ee.Filter.inList("relativeOrbitNumber_start", rel_orbits))
-    if not allow_partial:
-        # Keep only scenes whose footprint fully contains the study area.
-        col = col.filter(ee.Filter.contains(leftField=".geo", rightValue=aoi))
     return col.sort("system:time_start")
 
 
 def fetch_metadata(col: ee.ImageCollection) -> list[dict]:
+    """Return one dict per scene (slice)."""
     props = [
         "system:index",
         "system:time_start",
         "platform_number",
         "orbitProperties_pass",
         "relativeOrbitNumber_start",
+        "orbitNumber_start",
         "resolution_meters",
     ]
     cols = ee.Dictionary({p: col.aggregate_array(p) for p in props}).getInfo()
+    
+    if cols is None:
+        return []
+    
     n = len(cols["system:index"])
     if any(len(cols[p]) != n for p in props):
         sys.exit("Scene metadata is incomplete; cannot build index.")
@@ -120,10 +130,49 @@ def fetch_metadata(col: ee.ImageCollection) -> list[dict]:
                 "platform": f"S1{cols['platform_number'][i]}",
                 "orbit_pass": cols["orbitProperties_pass"][i],
                 "rel_orbit": int(cols["relativeOrbitNumber_start"][i]),
+                "abs_orbit": int(cols["orbitNumber_start"][i]),
                 "resolution_m": cols["resolution_meters"][i],
             }
         )
     return rows
+
+
+def group_passes(scenes: list[dict], col: ee.ImageCollection, aoi: ee.Geometry) -> list[dict]:
+    """Group slices of the same pass and compute each pass's coverage of the AOI.
+
+    Slices from one pass share the platform and absolute orbit number.
+    """
+    groups: dict[tuple, list[dict]] = {}
+    for sc in scenes:
+        groups.setdefault((sc["platform"], sc["abs_orbit"]), []).append(sc)
+
+    passes = []
+    for members in groups.values():
+        members.sort(key=lambda m: m["datetime_utc"])
+        first = members[0]
+        passes.append({
+            "datetime_utc": first["datetime_utc"],
+            "platform": first["platform"],
+            "orbit_pass": first["orbit_pass"],
+            "rel_orbit": first["rel_orbit"],
+            "abs_orbit": first["abs_orbit"],
+            "resolution_m": first["resolution_m"],
+            "n_slices": len(members),
+            "scene_ids": ";".join(m["scene_id"] for m in members),
+        })
+    passes.sort(key=lambda p: p["datetime_utc"])
+
+    # Fraction of the AOI inside the union of each pass's slice footprints.
+    aoi_area = aoi.area(1)
+
+    def coverage(ids):
+        footprint = col.filter(ee.Filter.inList("system:index", ids)).geometry().dissolve(1)
+        return footprint.intersection(aoi, 1).area(1).divide(aoi_area)
+
+    id_lists = ee.List([p["scene_ids"].split(";") for p in passes])
+    for p, c in zip(passes, id_lists.map(coverage).getInfo()):
+        p["coverage"] = round(c, 4)
+    return passes
 
 
 def fixed_grid(aoi: ee.Geometry, crs: str, scale: float):
@@ -143,9 +192,13 @@ def scene_filename(row: dict, pol: str) -> str:
     return f"{t}_{row['platform']}_{row['orbit_pass'][:3]}_orb{row['rel_orbit']:03d}_{pol}.tif"
 
 
-def download_scene(row, out_path: Path, pol, crs, transform, width, height, retries=4):
+def download_pass(row, out_path: Path, pol, crs, transform, width, height, retries=4):
+    # Edge-mask each slice first so its neighbour fills the masked border.
+    slices = [mask_edge(ee.Image(f"{COLLECTION}/{sid}").select(pol))
+              for sid in row["scene_ids"].split(";")]
+    image = slices[0] if len(slices) == 1 else ee.ImageCollection(slices).mosaic()
     image = (
-        mask_edge(ee.Image(f"{COLLECTION}/{row['scene_id']}").select(pol))
+        image
         .toFloat()
         .unmask(NODATA, False)  # fill masked and out-of-footprint pixels
     )
@@ -175,6 +228,13 @@ def download_scene(row, out_path: Path, pol, crs, transform, width, height, retr
             time.sleep(wait)
 
 
+def _by_orbit(rows: list[dict]) -> dict[tuple, list[dict]]:
+    out: dict[tuple, list[dict]] = {}
+    for r in rows:
+        out.setdefault((r["orbit_pass"], r["rel_orbit"]), []).append(r)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", default=os.environ.get("EE_PROJECT"),
@@ -187,8 +247,9 @@ def main():
     ap.add_argument("--pol", default="VV", choices=["VV", "VH"])
     ap.add_argument("--orbit-pass", choices=["ASCENDING", "DESCENDING"])
     ap.add_argument("--rel-orbit", type=int, nargs="+", help="relative orbit number(s) to keep")
-    ap.add_argument("--allow-partial", action="store_true",
-                    help="also keep scenes that only partly cover the study area")
+    ap.add_argument("--min-coverage", type=float, default=0.99,
+                    help="minimum fraction of the study area a pass (after mosaicking its "
+                         "slices) must cover to be kept (default 0.99; 0 keeps all)")
     ap.add_argument("--crs", default="EPSG:27700", help="output CRS (default British National Grid)")
     ap.add_argument("--scale", type=float, default=10.0, help="output pixel size in CRS units (m)")
     ap.add_argument("--out", type=Path, help="output directory (default code/data/s1_<POL>)")
@@ -202,14 +263,25 @@ def main():
 
     aoi = load_aoi(args.aoi, args.bbox)
     col = build_collection(aoi, args.start, args.end, args.pol,
-                           args.orbit_pass, args.rel_orbit, args.allow_partial)
-    rows = fetch_metadata(col)
-    if not rows:
+                           args.orbit_pass, args.rel_orbit)
+    scenes = fetch_metadata(col)
+    if not scenes:
         sys.exit("No scenes match the filters.")
 
-    print(f"{len(rows)} scenes, {args.start} to {args.end} (end exclusive), {args.pol}, IW")
-    for (p, o), n in sorted(Counter((r["orbit_pass"], r["rel_orbit"]) for r in rows).items()):
-        print(f"  {p:<10} relative orbit {o:>3}: {n} scenes")
+    passes = group_passes(scenes, col, aoi)
+    rows = [p for p in passes if p["coverage"] >= args.min_coverage]
+    dropped = len(passes) - len(rows)
+
+    print(f"{len(scenes)} scenes in {len(passes)} passes intersect the study area, "
+          f"{args.start} to {args.end} (end exclusive), {args.pol}, IW")
+    print(f"{len(rows)} passes cover >= {args.min_coverage:.0%} of it"
+          + (f" ({dropped} dropped)" if dropped else "") + ":")
+    for (p, o), grp in sorted(_by_orbit(rows).items()):
+        mosaicked = sum(r["n_slices"] > 1 for r in grp)
+        print(f"  {p:<10} relative orbit {o:>3}: {len(grp)} passes"
+              + (f" ({mosaicked} mosaicked from 2+ slices)" if mosaicked else ""))
+    if not rows:
+        sys.exit("No passes meet the coverage threshold.")
 
     transform, width, height = fixed_grid(aoi, args.crs, args.scale)
     print(f"Grid: {width} x {height} px at {args.scale:g} m in {args.crs}, origin "
@@ -232,7 +304,7 @@ def main():
     failed = set()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {
-            pool.submit(download_scene, r, out_dir / r["file"], args.pol,
+            pool.submit(download_pass, r, out_dir / r["file"], args.pol,
                         args.crs, transform, width, height): r
             for r in todo
         }
@@ -242,17 +314,17 @@ def main():
                 fut.result()
                 print(f"[{i}/{len(todo)}] {r['file']}")
             except Exception as exc:  # noqa: BLE001
-                failed.add(r["scene_id"])
+                failed.add(r["file"])
                 print(f"[{i}/{len(todo)}] FAILED {r['file']}: {exc}")
 
     with open(out_dir / "index.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=[*rows[0].keys(), "downloaded"])
         w.writeheader()
         for r in rows:
-            w.writerow({**r, "downloaded": r["scene_id"] not in failed})
+            w.writerow({**r, "downloaded": r["file"] not in failed})
 
     if failed:
-        sys.exit(f"{len(failed)} scene(s) failed; re-run to retry them.")
+        sys.exit(f"{len(failed)} pass(es) failed; re-run to retry them.")
     print("Done.")
 
 
