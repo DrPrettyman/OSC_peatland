@@ -15,6 +15,14 @@ _HALO = [pe.withStroke(linewidth=2.5, foreground="black")]  # keeps labels legib
 KM = [e / 1000 for e in extent()]  # grid extent [xmin, xmax, ymin, ymax] in km (BNG), for imshow
 
 
+def block_extent_km(k: int) -> list[float]:
+    """imshow extent (km) for the grid after s1stack.block_mean(..., k), which trims ragged edges."""
+    g = load_grid()
+    w, h = g["width"] // k * k, g["height"] // k * k
+    px = abs(g["transform"][0]) / 1000
+    return [KM[0], KM[0] + w * px, KM[3] - h * px, KM[3]]
+
+
 def imshow_km(ax, a, ext=KM, **kw):
     """Show a 2-D array on BNG km axes; `ext` overrides the extent (e.g. for 100 m cells)."""
     im = ax.imshow(a, extent=ext, interpolation="nearest", **kw)
@@ -112,3 +120,26 @@ def plot_restoration_areas(ax, areas: list[dict], color: str = "c", point_buffer
                 txt.append(f"{src} point, {ha:.0f} ha ({when})")
             ax.annotate("\n".join(txt), (x, y), xytext=(6, -6), textcoords="offset points",
                         color=color, fontsize=7, va="top", path_effects=_HALO)
+
+
+def get_study_areas() -> dict[str, dict]:
+    """Treatment and control zones from make_study_areas.py, keyed by zone name.
+
+    Each zone is a dict with:
+      pixels     boolean (height, width) mask on the Sentinel-1 grid (exact selection)
+      outlines   list of (x_km, y_km) arrays: exterior rings, then any interior holes
+      properties area, elevation, deep-peat fraction, centroid (from the GeoJSON)
+    """
+    import rasterio  # local import: only needed here
+
+    out_dir = Path(__file__).resolve().parent / "outputs"
+    with rasterio.open(out_dir / "study_areas.tif") as src:
+        zones = src.read(1)
+    fc = json.loads((out_dir / "study_areas.geojson").read_text())
+    codes = {"treatment": 1, "control": 2}
+    areas: dict[str, dict] = {}
+    for f in fc["features"]:
+        name = f["properties"]["zone"]
+        a = areas.setdefault(name, dict(pixels=zones == codes[name], outlines=[], properties=f["properties"]))
+        a["outlines"] += [tuple(np.array(ring).T / 1000) for ring in f["geometry"]["coordinates"]]
+    return areas
