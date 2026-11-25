@@ -1,5 +1,0 @@
-Using Sentinel‑1 synthetic aperture radar (SAR) data, please produce and plot backscatter time series for selected peatland locations on Bodmin Moor, Cornwall, over a period of your choice. Please show the trend at each location on a map of Bodmin Moor.
-
-The purpose of the exercise is to understand how you investigate a question and interpret what you find. A few hours of focused work is sufficient, and preliminary results are welcome. If a question remains open, a brief note on how you would follow it up would give us something useful to discuss.
-
-Once we receive your work, we will schedule an interview to discuss your approach and findings. We look forward to hearing your ideas.
