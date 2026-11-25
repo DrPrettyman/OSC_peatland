@@ -9,8 +9,19 @@ Interview task: map the 2023–2024 trend in Sentinel-1 radar backscatter over p
 | `code/` | Python scripts (`download_s1.py` fetches Sentinel-1 GRD scenes from Earth Engine) |
 | `code/data/` | Downloaded data (git-ignored) |
 | `write_up/` | LaTeX write-up (`main.tex`, figures in `write_up/figures/`) |
-| `notes/` | Working notes |
+| `notes/` | Working notes (git-ignored) |
 | `papers/` | Related literature: PDFs, abstracts, `references.bib` (catalogue in `papers/README.md`) |
+
+## Reproducing the results
+
+In order:
+
+1. Set up the Python environment and Earth Engine access (below).
+2. Download the Sentinel-1 scenes (`download_s1.py`).
+3. Download the ancillary layers and build the peat mask (`download_peat_map.py`, `download_ancillary.py`, `make_mask.py`).
+4. Select the restoration and control patches (`make_study_areas.py`).
+5. Run the notebook `code/eda.ipynb`, which makes all the figures, including the two in the write-up.
+6. Build the write-up (`write_up/main.tex`).
 
 ## Setup
 
@@ -74,9 +85,42 @@ python code/make_mask.py            # build code/data/ancillary/peat_mask.tif
 | **England Peat Map: Peatland Restoration Register** | Natural England (compiled from EA, Nature for Climate grant scheme, Countryside Stewardship records) | Same service | Restoration polygons and start dates (Priddicombe, Crowdy, Stanning Hill, Stannon South); point records plotted with 1 km rings as areas to avoid for a comparison patch |
 | **ESA WorldCover v200** (2021, 10 m) | ESA (Zanaga et al., 2022) | Earth Engine `ESA/WorldCover/v200` (`download_ancillary.py`) | Trees, open water and built-up areas in the mask |
 | **Dynamic World V1** (modal class and mean tree probability, 2023–24) | Google / World Resources Institute (Brown et al., 2022, *Scientific Data*) | Earth Engine `GOOGLE/DYNAMICWORLD/V1` | Downloaded but not used: labels ~25% of the box as trees, which is implausible |
-| **Copernicus GLO-30 DEM** | ESA / Copernicus | Earth Engine `COPERNICUS/DEM/GLO30_2024_1` | Downloaded, not yet used |
+| **Copernicus GLO-30 DEM** | ESA / Copernicus | Earth Engine `COPERNICUS/DEM/GLO30_2024_1` | Elevation matching of the control patch (`make_study_areas.py`) |
 
 **To check:** the licence and required attribution for the England Peat Map layers (assumed Open Government Licence, not yet confirmed on Natural England's dataset pages), and the Zanaga and Brown citations before adding them to `references.bib`.
+
+### Study areas
+
+```bash
+python code/make_study_areas.py     # Crowdy restoration patch and matched control -> code/outputs/study_areas.{tif,geojson}
+```
+
+The outputs are committed, so this step is only needed if the mask or the selection rules change.
+
+### Run the notebook
+
+The notebook reads its inputs with paths relative to `code/`, so start Jupyter from there:
+
+```bash
+cd code
+jupyter lab eda.ipynb
+```
+
+or run every cell without opening it (about 15 seconds):
+
+```bash
+cd code
+jupyter nbconvert --to notebook --execute --inplace eda.ipynb
+```
+
+It writes the exploratory figures to `code/eda_figures/` and the two write-up figures to `write_up/figures/` (`timeseries.pdf`, `trend_map.pdf`).
+
+### Build the write-up
+
+```bash
+cd write_up
+latexmk -pdf main.tex
+```
 
 ## Notes on Sentinel-1 Data
 
