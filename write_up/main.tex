@@ -113,9 +113,8 @@ Three relative orbits of Sentinel-1A pass over our study area, a bounding box of
   \end{tabular}
 \end{table}
 
-We use orbit 103 for all figures.
-It has the smallest incidence angle, so the signal passes through less vegetation, and the largest annual cycle over the moor, and it passes in the evening, avoiding the dew and frost which may affect orbit 52 before sunrise.
-We use orbits 1 and 52 to check the results from orbit 103.
+We use orbit 103 for all figures since it has the smallest incidence angle, so the signal passes through less vegetation, and the largest annual cycle over the moor, and it passes in the evening, avoiding the dew and frost which may affect orbit 52 before sunrise.
+We also use orbits 1 and 52 for comparison. 
 
 \subsection{Study areas}
 \label{sec:study}
@@ -123,7 +122,7 @@ We use orbits 1 and 52 to check the results from orbit 103.
 We restrict the study area (\SI{74.5}{\kilo\metre\squared}) to moorland peat using a mask on the \SI{10}{\metre} Sentinel-1 grid.
 A pixel is kept if it lies on peat in the England Peat Map \cite{nePeatMap} and is not flagged there as improved grassland, afforested land, woodland or a linear feature, is not tree cover, open water or built-up land in ESA WorldCover 2021 \cite{zanaga2022}, and is not radar-dark water (temporal-mean VV below \SI{-18}{\deci\bel} in every orbit).
 Trees and water are buffered by \SI{20}{\metre}.
-The mask keeps \SI{38.8}{\kilo\metre\squared}, or 52\% of the box (Fig.~\ref{fig:trendmap}).
+The mask keeps \SI{38.8}{\kilo\metre\squared}, or 52\% of the original bounding box area (Fig.~\ref{fig:trendmap}).
 
 From the Peatland Restoration Register we chose the area east of Crowdy Reservoir (\ang{50.62}\,N, \ang{4.62}\,W), where restoration began in March 2023.
 The restoration patch is the part of the Crowdy polygon inside the mask (\SI{47.5}{\hectare}).
@@ -181,14 +180,14 @@ For Fig.~\ref{fig:timeseries} we average the pixels of each patch on each date, 
 Both patches follow the annual cycle of the moor as a whole, with the highest backscatter in mid-February and the lowest in summer (Fig.~\ref{fig:timeseries}).
 The largest departure from this cycle occurs during the drought of June 2023, when the mean backscatter of the control patch over June and July fell \SI{3.4}{\deci\bel} below its mean from mid-March to April, compared with \SI{2.1}{\deci\bel} for the restoration patch.
 The trend in the difference between the patches is \SI{-0.34 \pm 0.23}{\deci\bel\per\year}.
-However, the difference does not change steadily; it rises to \SI{+1.7}{\deci\bel} during the drought and falls to about \SI{-1}{\deci\bel} from February to April 2024, during a very wet late winter and spring \cite{metoffice}.
-The restoration patch also has a smaller annual cycle (amplitude $\approx$\SI{0.8}{\deci\bel}, against $\approx$\SI{1.2}{\deci\bel}).
-Orbits 1 and 52 give similar results, with difference trends of $\approx$\SI{-0.3}{} and $\approx$\SI{-0.5}{\deci\bel\per\year}.
+However, the difference does not change steadily; it rises to \SI{+1.7}{\deci\bel} during the drought and falls to about \SI{-1}{\deci\bel} from February to April 2024, during a wet late winter and spring \cite{metoffice}.
+The restoration patch also has a smaller annual cycle (amplitude $\sim$\SI{0.8}{\deci\bel}, against $\sim$\SI{1.2}{\deci\bel}).
+Orbits 1 and 52 give similar results, with difference trends of \SI{-0.3}{} and \SI{-0.5}{\deci\bel\per\year}.
 
 \subsection{Spatial pattern of trends}
 Over the moor as a whole, VV increased by \SI{+0.62 \pm 0.33}{\deci\bel\per\year}.
-However, the orbits do not agree on this value ($\approx$\SI{+0.5}{\deci\bel\per\year} for orbit 52 and $\approx 0$ for orbit 1), and when the annual cycle is removed the increase appears to be mainly the recovery after the drop in June 2023.
-Local trends are weak (Fig.~\ref{fig:trendmap}); 90\% of the 3801 cells lie within $\approx\pm$\SI{0.5}{\deci\bel\per\year}, compared with a median standard error of $\approx$\SI{0.2}{\deci\bel\per\year}.
+However, the orbits do not agree on this value ($\sim$\SI{0.5}{\deci\bel\per\year} for orbit 52 and $\sim 0$ for orbit 1), and when the annual cycle is removed the increase appears to be mainly the recovery after the drop in June 2023.
+Local trends are weak (Fig.~\ref{fig:trendmap}); 90\% of the 3801 cells lie within $\pm$\SI{0.5}{\deci\bel\per\year}, compared with a median standard error of $\sim$\SI{0.2}{\deci\bel\per\year}.
 In total, 129 cells (3.4\%) are robust, compared with about 7 expected if the orbits were independent, and these form a few clusters, one of which lies on the eastern edge of the Crowdy restoration patch.
 
 % ---------------------------------------------------------------------------
