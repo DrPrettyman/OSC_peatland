@@ -77,40 +77,77 @@ where on the moor does it show the clearest increase or decrease?}
 \section{Data and methods}
 % ---------------------------------------------------------------------------
 
-\subsection{Study area}
-\todo{Describe the chosen peatland area on Bodmin Moor and how the boundary was
-defined (source of boundary polygon, area in \si{\kilo\metre\squared}). Describe
-the representative patch used for the time series and why it was chosen.}
-
 \subsection{Data and acquisition filters}
-Table~\ref{tab:data} summarises the data source and acquisition filters.
-\todo{Preprocessing steps applied by the provider and by you, e.g.\ thermal
-noise removal, radiometric calibration, terrain correction, speckle filtering,
-conversion to dB.}
+
+In this study we focus on peatland on Bodmin Moor, Cornwall. 
+We have used Sentinel-1 SAR data obtained from Earth Engine \cite{gorelick2017} and pre-processed with the \emph{Sentinel-1 Toolbox} which applies thermal noise removal, radiometric calibration and a terrain correction, and converts to decibels on a log scale \cite{eeS1grd}.
+
+Both VV (transmitted and received with vertical polarisation) and VH (transmitted vertically and received horizontally) data are given in Sentinel-1.
+VV is dominated by scattering from the surface (soil, peat or water), so it responds to surface wetness and roughness, while VH arises mainly from volume scattering within vegetation, which depolarises the wave, so it is more sensitive to vegetation structure \cite{nasaSAR}.
+In this project we use VV because it is more sensitive to the water table: Sentinel-1 VV backscatter falls as the water table drops \cite{toca2023potential,asmuss2019potential}, and in drained grassland peat VV correlated more strongly with water-table depth than VH did \cite{asmuss2019potential}.
+VV is not a pure wetness signal, however: when a wildfire removed a 10--20\,cm moss layer from an Irish raised bog, VV rose by 2--3\,dB while VH showed no fire-related change \cite{hrysiewicz2023sar} (see also \cite{millard2018quantifying}).
+
+The data are provided in discrete scenes as the satellite passes over any given location at the same time of day at 12-day intervals.
+Three orbits pass over Bodmin Moor, defined by a rough bounding box of \ang{4.66}--\ang{4.55}\,W, \ang{50.55}--\ang{50.63}\,N (about $8 \times 9$\,km), giving three sets of data covering the area every 12 days.
+The three orbits are summarised in Table~\ref{tab:orbits}.
 
 \begin{table}[t]
   \centering
   \small
-  \caption{Data source, study boundary and acquisition filters.}
-  \label{tab:data}
-  \begin{tabular}{@{}ll@{}}
+  \caption{Sentinel-1A relative orbits covering the study area, January 2023 to
+  December 2024 (IW mode, GRD, VV, \SI{10}{\metre} pixels). Incidence angle:
+  mean (range) over the study area from Earth Engine's \texttt{angle} band,
+  which assumes a smooth ellipsoid and ignores local slope. Amplitude: half the
+  peak-to-trough range of the annual cycle fitted (Eq.~\ref{eq:model}) to the
+  median VV over the masked peat. Each orbit-1 date is a mosaic of two adjacent
+  slices.}
+  \label{tab:orbits}
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}rlcccc@{}}
     \toprule
-    Parameter        & Value \\
+    Orbit & Pass  & Time  & Dates & Incidence        & Amplitude \\
+          &       & (UTC) &       & angle (\si{\degree}) & (dB)      \\
     \midrule
-    Collection       & Sentinel-1 GRD \todo{IW, \SI{10}{\metre}} \\
-    Platform         & \todo{GEE / Planetary Computer / \dots} \\
-    Period           & 1 Jan 2023 -- 31 Dec 2024 \\
-    Polarisation     & \todo{VV or VH} \\
-    Orbit direction  & \todo{Ascending / Descending} \\
-    Relative orbit   & \todo{number} \\
-    Scenes used      & \todo{$N$} \\
-    Study boundary   & \todo{source, area} \\
-    Grid cell size   & \todo{\SI{}{\metre}} \\
+    1     & Asc.  & 18:14 & 58    & 44.8 (44.5--45.0) & 0.92 \\
+    52    & Desc. & 06:32 & 61    & 37.7 (37.4--38.0) & 1.16 \\
+    103   & Asc.  & 18:06 & 60    & 36.5 (36.2--36.8) & 1.45 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+We use orbit 103 for all figures.
+Its incidence angle is the smallest of the three (Table~\ref{tab:orbits}), so the signal passes through less vegetation and should be more sensitive to surface wetness.
+Consistent with this, it shows the largest annual cycle over the moor (Table~\ref{tab:orbits}).
+It passes in the evening (about 18:06 UTC, every 12 days), whereas orbit 52 passes at 06:32 UTC, before sunrise for much of the year, when dew or frost on the vegetation can change the backscatter independently of the wetness of the peat.
+Orbit 1 has the largest incidence angle and a seam between slices on every date.
+We use orbits 1 and 52 as independent checks on the orbit-103 results (Section~\ref{sec:trend}).
+
+In addition to Sentinel-1, we use four other data sources.
+The England Peat Map \cite{nePeatMap} provides two layers: the Peat Status layer gives peat extent and depth class (deep or shallow peaty soils) and flags other features (woodland etc.) and the Peatland Restoration Register gives the boundaries and start dates of restoration projects.
+ESA WorldCover 2021 \cite{zanaga2022} gives tree cover, open water and built-up land, and the Copernicus GLO-30 digital elevation model \cite{copdem} gives elevation.
+These three are rasterised or exported onto the \SI{10}{\metre} Sentinel-1 grid (British National Grid) and used to build the analysis mask and choose the study patches (Section~\ref{sec:study}).
+Finally, the Met Office's monthly and seasonal climate summaries \cite{metoffice} give the weather context for 2023--2024.
+
+\subsection{Study areas}
+\label{sec:study}
+
+Our study area is the bounding box above (\SI{74.5}{\kilo\metre\squared}), restricted by a mask to moorland peat.
+A \SI{10}{\metre} pixel is kept if it lies on peat in the England Peat Map (deep or shallow peaty soils) and is not flagged there as improved grassland, afforested land, woodland or a linear feature; is not tree cover, open water or built-up land in WorldCover; and is not radar-dark water (temporal-mean VV below \SI{-18}{\deci\bel} in every orbit, which catches the margins of Crowdy Reservoir and the flooded Stannon pit).
+Trees and water are buffered by \SI{20}{\metre} to remove edge effects.
+The mask keeps \SI{38.8}{\kilo\metre\squared}, 52\% of the box (coloured cells in Fig.~\ref{fig:trendmap}).
+
+Using this mask and the restoration boundaries from the Peatland Restoration Register, we have identified an area east of Crowdy Reservoir (centred on \ang{50.62}\,N, \ang{4.62}\,W) where peatland restoration began in March 2023, within our window of analysis (January 2023 to December 2024).
+We have chosen to study this area, the part of the Crowdy restoration polygon inside the mask (\SI{47.5}{\hectare} of \SI{58}{\hectare}), in order to assess possible effects of the restoration project; it is the patch used for the time series (Fig.~\ref{fig:timeseries}).
+We have also programmatically identified a nearby contiguous area of the same size (\SI{47.5}{\hectare}), about \SI{2}{\kilo\metre} to the south-east, which we use as a control.
+It is at least \SI{200}{\metre} from the Crowdy polygon, clear of all other restoration sites, and matched on elevation (mean \SI{291}{\metre} against \SI{282}{\metre}) and peat depth (100\% against 95\% deep peat).
+The control was chosen from these static properties only, never from the backscatter, so the comparison is not tuned to the result.
+
+Other restoration project areas were not used.
+Priddicombe (January 2022) and Stannon South (September 2022) began before our window, so the record has no pre-works period, and Stanning Hill (March 2023) is a former plantation of which only \SI{1.2}{\hectare} lies inside the mask.
+Register entries recorded only as points give a grid reference but not the extent of the works, so they cannot be compared in the same way.
+
 \subsection{Trend estimation}
+\label{sec:trend}
 \todo{Describe the per-pixel trend model, e.g.\ ordinary least squares or Theil--Sen
 slope \cite{sen1968} of backscatter $\sigma^0$ (dB) against time, reported in
 \si{\deci\bel\per\year}. State whether a seasonal term was fitted or monthly
@@ -191,6 +228,65 @@ Sentinel-1 data: Copernicus Sentinel data 2023--2024 \cite{torres2012}.
   \bibitem{torres2012}
   R.~Torres et al., ``GMES Sentinel-1 mission,''
   \emph{Remote Sensing of Environment}, vol.~120, pp.~9--24, 2012.
+
+  \bibitem{gorelick2017}
+  N.~Gorelick, M.~Hancher, M.~Dixon, S.~Ilyushchenko, D.~Thau and R.~Moore,
+  ``Google Earth Engine: Planetary-scale geospatial analysis for everyone,''
+  \emph{Remote Sensing of Environment}, vol.~202, pp.~18--27, 2017.
+
+  \bibitem{toca2023potential}
+  L.~Toca, R.~R.~E.~Artz, C.~Smart, T.~Quaife, K.~Morrison, A.~Gimona,
+  R.~Hughes, M.~H.~Hancock and D.~Klein, ``Potential for peatland water table
+  depth monitoring using Sentinel-1 SAR backscatter: case study of Forsinard
+  Flows, Scotland, UK,'' \emph{Remote Sensing}, vol.~15, no.~7, 1900, 2023.
+
+  \bibitem{asmuss2019potential}
+  T.~Asmu{\ss}, M.~Bechtold and B.~Tiemeyer, ``On the potential of Sentinel-1
+  for high resolution monitoring of water table dynamics in grasslands on
+  organic soils,'' \emph{Remote Sensing}, vol.~11, no.~14, 1659, 2019.
+
+  \bibitem{hrysiewicz2023sar}
+  A.~Hrysiewicz, E.~P.~Holohan, S.~Donohue and H.~Cushnan, ``SAR and InSAR data
+  linked to soil moisture changes on a temperate raised peatland subjected to a
+  wildfire,'' \emph{Remote Sensing of Environment}, vol.~291, 113516, 2023.
+
+  \bibitem{millard2018quantifying}
+  K.~Millard and M.~Richardson, ``Quantifying the relative contributions of
+  vegetation and soil moisture conditions to polarimetric C-band SAR response in
+  a temperate peatland,'' \emph{Remote Sensing of Environment}, vol.~206,
+  pp.~123--138, 2018.
+
+  \bibitem{nePeatMap}
+  Natural England, ``England Peat Map'': \emph{England Peat Status, GHG and C
+  Storage} (\copyright{} BGS \& NSRI) and \emph{Peatland Restoration Register},
+  Natural England open data (ArcGIS feature services),
+  \url{https://services.arcgis.com/JJzESW51TqeY9uat/arcgis/rest/services},
+  accessed 25 Nov 2026.
+
+  \bibitem{zanaga2022}
+  D.~Zanaga et al., ``ESA WorldCover 10\,m 2021 v200,'' Zenodo, 2022,
+  doi:\href{https://doi.org/10.5281/zenodo.7254221}{10.5281/zenodo.7254221}.
+
+  \bibitem{copdem}
+  European Space Agency, ``Copernicus Global Digital Elevation Model
+  (GLO-30),'' doi:\href{https://doi.org/10.5270/ESA-c5d3d65}{10.5270/ESA-c5d3d65};
+  accessed via Earth Engine (\texttt{COPERNICUS/DEM/GLO30\_2024\_1}).
+
+  \bibitem{metoffice}
+  Met Office, ``UK climate summaries,''
+  \url{https://www.metoffice.gov.uk/research/climate/maps-and-data/summaries/index},
+  accessed 25 Nov 2026.
+
+  \bibitem{nasaSAR}
+  NASA Earthdata, ``What is Synthetic Aperture Radar?,''
+  \url{https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar},
+  accessed 25 Nov 2026.
+
+  \bibitem{eeS1grd}
+  Google Earth Engine Data Catalog, ``Sentinel-1 SAR GRD: C-band Synthetic
+  Aperture Radar Ground Range Detected, log scaling'' (\texttt{COPERNICUS/S1\_GRD}),
+  \url{https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S1_GRD},
+  accessed 25 Nov 2026.
 
   \bibitem{sen1968}
   P.~K.~Sen, ``Estimates of the regression coefficient based on Kendall's tau,''
