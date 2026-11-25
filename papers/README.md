@@ -27,6 +27,16 @@ BibTeX for everything is in [`references.bib`](references.bib); each entry's `fi
 | `lamentowicz2020unveiling` | 2020 | [Unveiling tipping points in long-term and experimental studies in peatlands](https://doi.org/10.5194/egusphere-egu2020-5072) | EGU General Assembly 2020 | [abstract](EGU2020-5072_abstract.md), [slides](EGU2020-5072_presentation.pdf) |
 | `fewster2022imminent` | 2022 | [Imminent loss of climate space for permafrost peatlands in Europe and Western Siberia](https://doi.org/10.1038/s41558-022-01296-7) | Nature Climate Change | [fewster2022imminent.pdf](fewster2022imminent.pdf) (accepted manuscript (White Rose)) |
 
+## Sentinel-1 backscatter and peat wetness
+
+| Key | Year | Title | Venue | Local copy |
+|---|---|---|---|---|
+| `millard2018quantifying` | 2018 | [Quantifying the relative contributions of vegetation and soil moisture conditions to polarimetric C-Band SAR response in a temperate peatland](https://doi.org/10.1016/j.rse.2017.12.011) | Remote Sensing of Environment | — not saved (paywalled) |
+| `asmuss2019potential` | 2019 | [On the Potential of Sentinel-1 for High Resolution Monitoring of Water Table Dynamics in Grasslands on Organic Soils](https://doi.org/10.3390/rs11141659) | Remote Sensing | [asmuss2019potential.pdf](asmuss2019potential.pdf) |
+| `toca2022high` | 2022 | [High resolution C-band SAR backscatter response to peatland water table depth and soil moisture: a laboratory experiment](https://doi.org/10.1080/01431161.2022.2131478) | International Journal of Remote Sensing | [toca2022high.pdf](toca2022high.pdf) |
+| `toca2023potential` | 2023 | [Potential for Peatland Water Table Depth Monitoring Using Sentinel-1 SAR Backscatter: Case Study of Forsinard Flows, Scotland, UK](https://doi.org/10.3390/rs15071900) | Remote Sensing | [toca2023potential.pdf](toca2023potential.pdf) |
+| `hrysiewicz2023sar` | 2023 | [SAR and InSAR data linked to soil moisture changes on a temperate raised peatland subjected to a wildfire](https://doi.org/10.1016/j.rse.2023.113516) | Remote Sensing of Environment | [hrysiewicz2023sar.pdf](hrysiewicz2023sar.pdf) (EarthArXiv preprint) |
+
 ## Tipping-point methods
 
 | Key | Year | Title | Venue | Local copy |
@@ -78,4 +88,4 @@ BibTeX for everything is in [`references.bib`](references.bib); each entry's `fi
 
 ## Not saved
 
-Full text of `sudakov2013bifurcations` and `sudakov2015mathematical` (paywalled). Their abstracts are saved alongside and in the `.bib` `abstract` fields.
+Full text of `sudakov2013bifurcations`, `sudakov2015mathematical` and `millard2018quantifying` (paywalled). Their abstracts are saved alongside and in the `.bib` `abstract` fields.
