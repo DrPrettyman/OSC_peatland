@@ -1,0 +1,206 @@
+\documentclass[10pt,a4paper,twocolumn]{article}
+
+% ---------------------------------------------------------------------------
+% Packages
+% ---------------------------------------------------------------------------
+\usepackage[a4paper,margin=1.7cm,columnsep=0.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage[font=small,labelfont=bf,skip=4pt]{caption}
+\usepackage[compact]{titlesec}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\graphicspath{{figures/}}
+
+% Tight journal-style headings
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.0ex plus 0.5ex minus 0.2ex}{0.5ex}
+\titlespacing*{\subsection}{0pt}{0.8ex plus 0.3ex minus 0.2ex}{0.3ex}
+
+\setlength{\parskip}{0pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+
+% Units
+\DeclareSIUnit\year{yr}
+
+% Draft helpers: \todo{...} shows red text; remove before submission
+\newcommand{\todo}[1]{\textcolor{red}{[#1]}}
+
+% Include a figure if it exists, otherwise draw a labelled placeholder box
+\newcommand{\figorbox}[2]{%
+  \IfFileExists{figures/#1}%
+    {\includegraphics[width=\columnwidth]{#1}}%
+    {\fbox{\parbox[c][#2][c]{0.95\columnwidth}{\centering\small\ttfamily figures/\detokenize{#1}}}}%
+}
+
+% ---------------------------------------------------------------------------
+% Title block
+% ---------------------------------------------------------------------------
+\title{\vspace{-1.2cm}\Large\bfseries Sentinel-1 C-band backscatter trends over
+peatland on Bodmin Moor, Cornwall, 2023--2024}
+\author{Joshua Prettyman}
+\date{\small\today}
+
+\begin{document}
+
+\twocolumn[
+  \begin{@twocolumnfalse}
+    \maketitle
+    \vspace{-0.8cm}
+    \begin{abstract}
+      \noindent
+      \todo{Two to three sentences: study area, data (Sentinel-1 GRD, VV/VH,
+      Jan 2023--Dec 2024), trend method, headline result (direction and
+      magnitude in \si{\deci\bel\per\year}, where it is strongest), and the main
+      caveat.}
+    \end{abstract}
+    \vspace{0.4cm}
+  \end{@twocolumnfalse}
+]
+
+% ---------------------------------------------------------------------------
+\section{Introduction}
+% ---------------------------------------------------------------------------
+\todo{Brief motivation: C-band backscatter over peat responds to surface
+moisture and vegetation structure, so multi-year trends may indicate changes in
+peatland condition. State the question: how does backscatter vary over time and
+where on the moor does it show the clearest increase or decrease?}
+
+% ---------------------------------------------------------------------------
+\section{Data and methods}
+% ---------------------------------------------------------------------------
+
+\subsection{Study area}
+\todo{Describe the chosen peatland area on Bodmin Moor and how the boundary was
+defined (source of boundary polygon, area in \si{\kilo\metre\squared}). Describe
+the representative patch used for the time series and why it was chosen.}
+
+\subsection{Data and acquisition filters}
+Table~\ref{tab:data} summarises the data source and acquisition filters.
+\todo{Preprocessing steps applied by the provider and by you, e.g.\ thermal
+noise removal, radiometric calibration, terrain correction, speckle filtering,
+conversion to dB.}
+
+\begin{table}[t]
+  \centering
+  \small
+  \caption{Data source, study boundary and acquisition filters.}
+  \label{tab:data}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Parameter        & Value \\
+    \midrule
+    Collection       & Sentinel-1 GRD \todo{IW, \SI{10}{\metre}} \\
+    Platform         & \todo{GEE / Planetary Computer / \dots} \\
+    Period           & 1 Jan 2023 -- 31 Dec 2024 \\
+    Polarisation     & \todo{VV or VH} \\
+    Orbit direction  & \todo{Ascending / Descending} \\
+    Relative orbit   & \todo{number} \\
+    Scenes used      & \todo{$N$} \\
+    Study boundary   & \todo{source, area} \\
+    Grid cell size   & \todo{\SI{}{\metre}} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Trend estimation}
+\todo{Describe the per-pixel trend model, e.g.\ ordinary least squares or Theil--Sen
+slope \cite{sen1968} of backscatter $\sigma^0$ (dB) against time, reported in
+\si{\deci\bel\per\year}. State whether a seasonal term was fitted or monthly
+composites were used, and how significance was assessed
+(e.g.\ Mann--Kendall \cite{mann1945}).}
+%
+% Example model, delete if not used:
+\begin{equation}
+  \sigma^0(t) = \beta_0 + \beta_1 t
+    + \gamma_1 \sin\!\left(\tfrac{2\pi t}{T}\right)
+    + \gamma_2 \cos\!\left(\tfrac{2\pi t}{T}\right) + \varepsilon,
+  \label{eq:model}
+\end{equation}
+where $\beta_1$ is the trend (\si{\deci\bel\per\year}) and $T = \SI{1}{\year}$.
+
+% ---------------------------------------------------------------------------
+\section{Results}
+% ---------------------------------------------------------------------------
+
+\begin{figure}[t]
+  \centering
+  \figorbox{timeseries.pdf}{5cm}
+  \caption{Sentinel-1 \todo{VV} backscatter $\sigma^0$ (dB) for the
+  representative patch, January 2023 to December 2024. Points: individual
+  acquisitions; line: \todo{monthly median / fitted trend}.}
+  \label{fig:timeseries}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \figorbox{trend_map.pdf}{6cm}
+  \caption{Backscatter trend (\si{\deci\bel\per\year}) per grid cell across the
+  study area, 2023--2024. The black outline marks the time-series patch
+  (Fig.~\ref{fig:timeseries}).}
+  \label{fig:trendmap}
+\end{figure}
+
+\subsection{Time series}
+\todo{Describe Fig.~\ref{fig:timeseries}: seasonal cycle, notable events
+(e.g.\ dry summer, frost, snow), and the fitted slope with uncertainty.}
+
+\subsection{Spatial pattern of trends}
+\todo{Describe Fig.~\ref{fig:trendmap}: overall distribution of slopes,
+where the clearest increases and decreases occur, and the fraction of the
+area with significant trends. Say so explicitly if the trend is weak or
+negligible.}
+
+% ---------------------------------------------------------------------------
+\section{Discussion}
+% ---------------------------------------------------------------------------
+
+\subsection{Main pattern}
+\todo{Interpret the dominant pattern.}
+
+\subsection{Factors affecting the apparent trend}
+\todo{Discuss one factor in depth, e.g.\ a short two-year record dominated by
+inter-annual rainfall differences, a change in acquisition geometry, or
+vegetation management (burning, grazing, cutting).}
+
+\subsection{Field observation for interpretation}
+\todo{Identify one field observation that would link the trend to peatland
+condition, e.g.\ water-table depth from dipwells, near-surface soil moisture,
+or vegetation composition and height surveys.}
+
+% ---------------------------------------------------------------------------
+\section*{Code and data availability}
+% ---------------------------------------------------------------------------
+\todo{Link to script / notebook and describe how to reproduce the figures.}
+Sentinel-1 data: Copernicus Sentinel data 2023--2024 \cite{torres2012}.
+
+% ---------------------------------------------------------------------------
+\begingroup
+\footnotesize
+\renewcommand{\section}[2]{\subsection*{References}}
+\begin{thebibliography}{9}
+  \setlength{\itemsep}{0pt}
+
+  \bibitem{torres2012}
+  R.~Torres et al., ``GMES Sentinel-1 mission,''
+  \emph{Remote Sensing of Environment}, vol.~120, pp.~9--24, 2012.
+
+  \bibitem{sen1968}
+  P.~K.~Sen, ``Estimates of the regression coefficient based on Kendall's tau,''
+  \emph{J.\ Amer.\ Statist.\ Assoc.}, vol.~63, no.~324, pp.~1379--1389, 1968.
+
+  \bibitem{mann1945}
+  H.~B.~Mann, ``Nonparametric tests against trend,''
+  \emph{Econometrica}, vol.~13, no.~3, pp.~245--259, 1945.
+
+\end{thebibliography}
+\endgroup
+
+\end{document}
