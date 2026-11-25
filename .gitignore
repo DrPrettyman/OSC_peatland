@@ -56,6 +56,10 @@ coverage.xml
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
 
+# ===================== Data =====================
+
+code/data/
+
 # ===================== LaTeX =====================
 # Core auxiliary files
 *.aux
