@@ -3,13 +3,14 @@
 % ---------------------------------------------------------------------------
 % Packages
 % ---------------------------------------------------------------------------
-\usepackage[a4paper,margin=1.7cm,columnsep=0.6cm]{geometry}
+\usepackage[a4paper,margin=1.5cm,columnsep=0.6cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{newtxtext,newtxmath}
 \usepackage{microtype}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{siunitx}
+\usepackage{xurl}  % break long URLs in the references
 \usepackage{xcolor}
 \usepackage[font=small,labelfont=bf,skip=4pt]{caption}
 \usepackage[compact]{titlesec}
@@ -45,10 +46,9 @@
 % ---------------------------------------------------------------------------
 % Title block
 % ---------------------------------------------------------------------------
-\title{\vspace{-1.2cm}\Large\bfseries Sentinel-1 C-band backscatter trends over
-peatland on Bodmin Moor, Cornwall, 2023--2024}
+\title{\vspace{-1.2cm}\Large\bfseries Sentinel-1 C-band backscatter trends on Bodmin Moor peatland, 2023--2024}
 \author{Joshua Prettyman}
-\date{\small\today}
+\date{}
 
 \begin{document}
 
@@ -58,10 +58,16 @@ peatland on Bodmin Moor, Cornwall, 2023--2024}
     \vspace{-0.8cm}
     \begin{abstract}
       \noindent
-      \todo{Two to three sentences: study area, data (Sentinel-1 GRD, VV/VH,
-      Jan 2023--Dec 2024), trend method, headline result (direction and
-      magnitude in \si{\deci\bel\per\year}, where it is strongest), and the main
-      caveat.}
+      We investigate how Sentinel-1 VV backscatter over peatland on Bodmin
+      Moor, Cornwall, varied between January 2023 and December 2024. Over the
+      moor as a whole the backscatter increased by
+      \SI{+0.62 \pm 0.33}{\deci\bel\per\year}, but this appears to be mainly
+      the recovery from a drought in June 2023, and local trends relative to
+      the moor are weak. At a site where restoration began in March 2023, the
+      backscatter had a smaller annual cycle and a smaller response to the
+      drought than a nearby control area, which may indicate a more stable
+      water table, although with two years of data we cannot separate this
+      from an existing difference between the sites.
     \end{abstract}
     \vspace{0.4cm}
   \end{@twocolumnfalse}
@@ -70,13 +76,11 @@ peatland on Bodmin Moor, Cornwall, 2023--2024}
 % ---------------------------------------------------------------------------
 \section{Introduction}
 % ---------------------------------------------------------------------------
-Satellite radar has been used to monitor the condition of peatlands, both through the intensity of the backscattered signal, which responds to surface wetness and vegetation \cite{toca2023potential,asmuss2019potential,hrysiewicz2023sar}, and through InSAR measurements of surface motion \cite{marshall2021naturescot,bradley2022identification}.
-Sentinel-1 provides C-band backscatter with a 12-day repeat cycle for each satellite \cite{torres2012}, so changes in backscatter over several years may indicate changes in peatland condition, for example following restoration.
-Bodmin Moor, Cornwall, is one of the areas covered by the South West Peatland Partnership \cite{swpp}, and several peatland restoration projects on the moor are recorded in Natural England's Peatland Restoration Register \cite{nePeatMap}.
+Satellite radar has been used to monitor the condition of peatlands, both through the intensity of the backscattered signal, which responds to surface wetness and vegetation \cite{toca2023potential,asmuss2019potential,hrysiewicz2023sar}, and through InSAR measurements of surface motion, which responds to the water and gas content of the peat \cite{marshall2021naturescot,bradley2022identification}.
+Bodmin Moor, Cornwall, is one of the areas covered by the South West Peatland Partnership \cite{swpp}, and several peatland restoration projects on the moor began in 2022 and 2023 (Section~\ref{sec:study}).
 
 In this report we investigate how Sentinel-1 VV backscatter over peatland on Bodmin Moor varies between January 2023 and December 2024, and where on the moor it shows the clearest increase or decrease.
-We first estimate the trend in the backscatter over the moor as a whole, and then map the local trend in each \SI{100}{\metre} cell relative to this moor-wide signal.
-We then compare a site where restoration began in March 2023 with a nearby control area, and finally discuss the factors which may affect the apparent trends.
+We then compare a site where restoration began in March 2023 with a nearby control area.
 
 % ---------------------------------------------------------------------------
 \section{Data and methods}
@@ -84,29 +88,17 @@ We then compare a site where restoration began in March 2023 with a nearby contr
 
 \subsection{Data and acquisition filters}
 
-In this study we focus on peatland on Bodmin Moor, Cornwall. 
-We have used Sentinel-1 SAR data obtained from Earth Engine \cite{gorelick2017} and pre-processed with the \emph{Sentinel-1 Toolbox} which applies thermal noise removal, radiometric calibration and a terrain correction, and converts to decibels on a log scale \cite{eeS1grd}.
+We use Sentinel-1 GRD data from Earth Engine \cite{gorelick2017}, which are pre-processed with the \emph{Sentinel-1 Toolbox} (thermal noise removal, radiometric calibration and terrain correction) and converted to decibels \cite{eeS1grd}.
+Sentinel-1 records both VV and VH polarisations, and we use VV, which in drained grassland peat correlated more strongly with water-table depth than VH \cite{asmuss2019potential}.
+Three relative orbits of Sentinel-1A pass over our study area, a bounding box of \ang{4.66}--\ang{4.55}\,W, \ang{50.55}--\ang{50.63}\,N, each giving one acquisition every 12 days (Table~\ref{tab:orbits}).
 
-Both VV (transmitted and received with vertical polarisation) and VH (transmitted vertically and received horizontally) data are given in Sentinel-1.
-VV is dominated by scattering from the surface (soil, peat or water), so it responds to surface wetness and roughness, while VH arises mainly from volume scattering within vegetation, which depolarises the wave, so it is more sensitive to vegetation structure \cite{nasaSAR}.
-In this project we use VV because it is more sensitive to the water table.
-Sentinel-1 VV backscatter has been shown to decrease as the water table drops \cite{toca2023potential,asmuss2019potential}, and in drained grassland peat VV correlated more strongly with water-table depth than VH \cite{asmuss2019potential}.
-However, VV also responds to vegetation; when a wildfire removed a 10--20\,cm moss layer from an Irish raised bog, VV increased by 2--3\,dB while VH showed no change related to the fire \cite{hrysiewicz2023sar} (see also \cite{millard2018quantifying}).
-
-The data are provided in discrete scenes as the satellite passes over any given location at the same time of day at 12-day intervals.
-Three orbits pass over Bodmin Moor, defined by a rough bounding box of \ang{4.66}--\ang{4.55}\,W, \ang{50.55}--\ang{50.63}\,N (about $8 \times 9$\,km), giving three sets of data covering the area every 12 days.
-The three orbits are summarised in Table~\ref{tab:orbits}.
-
-\begin{table}[t]
+\begin{table}[h!]
   \centering
   \small
   \caption{Sentinel-1A relative orbits covering the study area, January 2023 to
   December 2024 (IW mode, GRD, VV, \SI{10}{\metre} pixels). Incidence angle:
-  mean (range) over the study area from Earth Engine's \texttt{angle} band,
-  which assumes a smooth ellipsoid and ignores local slope. Amplitude: half the
-  peak-to-trough range of the annual cycle fitted (Eq.~\ref{eq:model}) to the
-  median VV over the masked peat. Each orbit-1 date is a mosaic of two adjacent
-  slices.}
+  mean (range) over the study area. Amplitude: of the annual cycle fitted
+  (Eq.~\ref{eq:model}) to the median VV over the masked peat.}
   \label{tab:orbits}
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}rlcccc@{}}
@@ -122,64 +114,42 @@ The three orbits are summarised in Table~\ref{tab:orbits}.
 \end{table}
 
 We use orbit 103 for all figures.
-It has the smallest incidence angle of the three orbits (Table~\ref{tab:orbits}), so we expect the signal to pass through less vegetation and to be more sensitive to surface wetness, and it also has the largest annual cycle over the moor.
-Orbit 103 passes in the evening (about 18:06 UTC), whereas orbit 52 passes at 06:32 UTC, which is before sunrise for much of the year, when dew or frost on the vegetation may affect the backscatter.
-Orbit 1 has the largest incidence angle, and each acquisition is stitched together from two scenes.
-We use orbits 1 and 52 to check the results from orbit 103 (Section~\ref{sec:trend}).
-
-In addition to Sentinel-1, we use four other data sources.
-The England Peat Map \cite{nePeatMap} provides two layers: the Peat Status layer gives peat extent and depth class (deep or shallow peaty soils) and flags other features (woodland etc.) and the Peatland Restoration Register gives the boundaries and start dates of restoration projects.
-ESA WorldCover 2021 \cite{zanaga2022} gives tree cover, open water and built-up land, and the Copernicus GLO-30 digital elevation model \cite{copdem} gives elevation.
-These three are rasterised or exported onto the \SI{10}{\metre} Sentinel-1 grid (British National Grid) and used to build the analysis mask and choose the study patches (Section~\ref{sec:study}).
-Finally, the Met Office's monthly and seasonal climate summaries \cite{metoffice} give the weather context for 2023--2024.
+It has the smallest incidence angle, so the signal passes through less vegetation, and the largest annual cycle over the moor, and it passes in the evening, avoiding the dew and frost which may affect orbit 52 before sunrise.
+We use orbits 1 and 52 to check the results from orbit 103.
 
 \subsection{Study areas}
 \label{sec:study}
 
-Our study area is the bounding box described above (\SI{74.5}{\kilo\metre\squared}), which we restrict to moorland peat using a mask.
-A \SI{10}{\metre} pixel is kept if it lies on peat in the England Peat Map (deep or shallow peaty soils) and is not flagged there as improved grassland, afforested land, woodland or a linear feature, is not tree cover, open water or built-up land in WorldCover, and is not radar-dark water (temporal-mean VV below \SI{-18}{\deci\bel} in every orbit, which removes the margins of Crowdy Reservoir and the flooded Stannon pit).
-Trees and water are buffered by \SI{20}{\metre} to remove edge effects.
+We restrict the study area (\SI{74.5}{\kilo\metre\squared}) to moorland peat using a mask on the \SI{10}{\metre} Sentinel-1 grid.
+A pixel is kept if it lies on peat in the England Peat Map \cite{nePeatMap} and is not flagged there as improved grassland, afforested land, woodland or a linear feature, is not tree cover, open water or built-up land in ESA WorldCover 2021 \cite{zanaga2022}, and is not radar-dark water (temporal-mean VV below \SI{-18}{\deci\bel} in every orbit).
+Trees and water are buffered by \SI{20}{\metre}.
 The mask keeps \SI{38.8}{\kilo\metre\squared}, or 52\% of the box (Fig.~\ref{fig:trendmap}).
 
-Using this mask and the restoration boundaries from the Peatland Restoration Register, we have identified an area east of Crowdy Reservoir (centred on \ang{50.62}\,N, \ang{4.62}\,W) where peatland restoration began in March 2023, within our window of analysis (January 2023 to December 2024).
-We have chosen to study this area, the part of the Crowdy restoration polygon inside the mask (\SI{47.5}{\hectare} of \SI{58}{\hectare}), in order to assess possible effects of the restoration project.
-This is the patch used for the time series in Fig.~\ref{fig:timeseries}.
-We have also programmatically identified a nearby contiguous area of the same size (\SI{47.5}{\hectare}), about \SI{2}{\kilo\metre} to the south-east, which we use as a control.
-The control area is at least \SI{200}{\metre} from the Crowdy polygon, avoids all other restoration sites, and has similar elevation (mean \SI{291}{\metre}, against \SI{282}{\metre} for the restoration patch) and peat depth (100\% deep peat, against 95\%).
+From the Peatland Restoration Register we chose the area east of Crowdy Reservoir (\ang{50.62}\,N, \ang{4.62}\,W), where restoration began in March 2023.
+The restoration patch is the part of the Crowdy polygon inside the mask (\SI{47.5}{\hectare}).
+We also identified a contiguous control area of the same size, about \SI{2}{\kilo\metre} to the south-east, which is at least \SI{200}{\metre} from the Crowdy polygon, avoids all other restoration sites, and has similar elevation (mean \SI{291}{\metre}, against \SI{282}{\metre}, from the Copernicus GLO-30 DEM \cite{copdem}) and peat depth (100\% deep peat, against 95\%).
 The control was selected using only these properties.
-
-Other restoration project areas were not used.
-Priddicombe (January 2022) and Stannon South (September 2022) began before our window of analysis, so there are no observations from before the works, and Stanning Hill (March 2023) is a former plantation of which only \SI{1.2}{\hectare} lies inside the mask.
-Some entries in the register are recorded only as points, which give a grid reference but not the extent of the works, so we do not use these.
 
 \subsection{Trend estimation}
 \label{sec:trend}
-Sentinel-1 backscatter over blanket bog has been observed to vary by about 3--6\,dB within a year \cite{toca2023potential}, which is much larger than the trends we expect to find, so we fit the trend and an annual cycle together.
-Each backscatter series $\sigma^0(t_i)$, in dB, is modelled as
+Sentinel-1 backscatter over blanket bog has been observed to vary by about 3--6\,dB within a year \cite{toca2023potential}, which is much larger than the trends we expect to find, so we fit the trend and an annual cycle together, modelling each series $\sigma^0(t_i)$, in dB, as
 \begin{equation}
   \sigma^0(t_i) = \underbrace{\beta_0 + \beta_1 (t_i - t_0)}_{\text{level + trend}}
     + \underbrace{\gamma_1 \sin 2\pi t_i + \gamma_2 \cos 2\pi t_i}_{\text{annual cycle}}
     + \varepsilon_i,
   \label{eq:model}
 \end{equation}
-where $t_i$ is in decimal years and $t_0 = 2024.0$ is the middle of the record, so that $\beta_0$ is the level at the midpoint.
+where $t_i$ is in decimal years and $t_0 = 2024.0$.
 The coefficients are estimated by ordinary least squares, and $\beta_1$ gives the trend in \si{\deci\bel\per\year}.
-Consecutive 12-day acquisitions are not independent, since a wet or dry spell may last over several acquisitions, so we widen the standard error of $\beta_1$ using the effective sample size $n_\text{eff} = n(1-\rho)/(1+\rho)$, where $\rho$ is the lag-1 autocorrelation of the residuals.
+Consecutive acquisitions are not independent, since a wet or dry spell may last over several acquisitions, so we widen the standard error of $\beta_1$ using the effective sample size $n_\text{eff} = n(1-\rho)/(1+\rho)$, where $\rho$ is the lag-1 autocorrelation of the residuals.
 
-For each orbit we take the median VV over all masked peat pixels on each acquisition date, which we call the moor-wide signal, $R(t_i)$.
-This signal includes the weather, seasonal changes in vegetation and any sensitivity specific to the orbit, so a trend in $R(t_i)$ cannot be attributed to a particular place on the moor.
-In order to see where on the moor the backscatter changes, we first average the masked pixels into \SI{100}{\metre} cells (cells need at least 50\% masked pixels) to reduce speckle \cite{nasaSAR}.
-We then subtract $R(t_i)$ from every cell on each date and fit Eq.~\ref{eq:model} to the result, $\text{cell}(t_i) - R(t_i)$, in every cell.
-We call the slope from this fit the \emph{local trend}; it measures brightening or darkening relative to the moor as a whole.
-Subtracting $R(t_i)$ shifts the slope in every cell by the same amount (the moor-wide trend), so the spatial pattern of trends is unchanged.
+We call the median VV over all masked pixels on each date the moor-wide signal, $R(t_i)$.
+In order to see where on the moor the backscatter changes, we average the masked pixels into \SI{100}{\metre} cells to reduce speckle \cite{nasaSAR}, subtract $R(t_i)$ from every cell on each date, and fit Eq.~\ref{eq:model} to the result.
+We call the slope from this fit the \emph{local trend}.
+We take a local trend to be significant if $|\beta_1|$ is greater than two standard errors, and call a cell \emph{robust} if its local trend is significant, with the same sign, in all three orbits.
+We compare the number of robust cells with the number expected if the orbits were independent (the number of cells multiplied by the product of the three orbits' fractions of significant positive trends, plus the same for negative trends); since the orbits share the same weather, we use this comparison as a guide only.
 
-We take a local trend to be significant if $|\beta_1|$ is greater than two standard errors.
-Orbits 1 and 52 observe the same ground from different geometries and at different times, so we call a cell \emph{robust} if its local trend is significant, with the same sign, in all three orbits.
-We compare the number of robust cells with the number expected if the three orbits were independent, which is the number of cells multiplied by the product of the three orbits' fractions of significant positive trends, plus the same for negative trends.
-In practice the orbits are not fully independent, as they share the same weather, so we use this comparison as a guide only.
-
-For the time series in Fig.~\ref{fig:timeseries} we average the pixels of the restoration and control patches on each date, and fit Eq.~\ref{eq:model} to each patch and to the difference between them (restoration $-$ control).
-Taking the difference removes the effect of weather which affects both patches equally.
+For Fig.~\ref{fig:timeseries} we average the pixels of each patch on each date, and fit Eq.~\ref{eq:model} to each patch and to the difference between them (restoration $-$ control), which removes the effect of weather common to both.
 
 % ---------------------------------------------------------------------------
 \section{Results}
@@ -188,46 +158,38 @@ Taking the difference removes the effect of weather which affects both patches e
 \begin{figure}[t]
   \centering
   \figorbox{timeseries.pdf}{5cm}
-  \caption{Sentinel-1 VV backscatter $\sigma^0$ (orbit 103) for the Crowdy
-  restoration patch and its matched control, January 2023 to December 2024.
-  Top: patch mean on each acquisition date (points) and the fitted trend and
-  annual cycle (Eq.~\ref{eq:model}; lines). Bottom: restoration $-$ control.
-  Trends are given $\pm$ one standard error. Dashed line: start of restoration
-  works; shading: June 2023, the UK's warmest June on record, with 68\% of
-  average rainfall \cite{metoffice}.}
+  \caption{VV backscatter $\sigma^0$ (orbit 103) for the Crowdy restoration
+  patch and its matched control. Top: patch mean on each date (points) and the
+  fitted trend and annual cycle (Eq.~\ref{eq:model}; lines), with trends
+  $\pm$ one standard error. Bottom: restoration $-$ control. Dashed line: start
+  of restoration works; shading: June 2023, the UK's warmest June on record,
+  with 68\% of average rainfall \cite{metoffice}.}
   \label{fig:timeseries}
 \end{figure}
 
 \begin{figure}[t]
   \centering
   \figorbox{trend_map.pdf}{6cm}
-  \caption{Local VV trend (orbit 103) in each \SI{100}{\metre} cell,
-  2023--2024, relative to the moor-wide signal; the moor-wide trend
-  (\SI{+0.62 \pm 0.33}{\deci\bel\per\year}) has been subtracted. Black
-  outlines: robust cells, significant with the same sign in all three orbits.
-  Magenta: Crowdy restoration patch; gold: matched control
-  (Fig.~\ref{fig:timeseries}); dashed: other restoration polygons. Grey:
-  outside the peat mask.}
+  \caption{Local VV trend (orbit 103) in each \SI{100}{\metre} cell, relative
+  to the moor-wide signal. Black outlines: robust cells. Magenta: Crowdy
+  restoration patch; gold: control (Fig.~\ref{fig:timeseries}); dashed: other
+  restoration polygons. Grey: outside the peat mask.}
   \label{fig:trendmap}
 \end{figure}
 
 \subsection{Time series}
 Both patches follow the annual cycle of the moor as a whole, with the highest backscatter in mid-February and the lowest in summer (Fig.~\ref{fig:timeseries}).
-The largest departure from this cycle occurs during the drought of June 2023.
-The control patch reached \SI{-15.5}{\deci\bel}, and its mean over June and July was \SI{3.4}{\deci\bel} below its mean from mid-March to April, compared with \SI{2.1}{\deci\bel} for the restoration patch.
-Both patches have positive fitted trends ($\approx$\SI{+0.2}{} and $\approx$\SI{+0.6}{\deci\bel\per\year}), and the trend in the difference between them is \SI{-0.34 \pm 0.23}{\deci\bel\per\year}.
-However, the difference does not change steadily over the period; it rises to \SI{+1.7}{\deci\bel} during the drought and falls to about \SI{-1}{\deci\bel} from February to April 2024, during a very wet late winter and spring \cite{metoffice}.
-The restoration patch also has a smaller annual cycle (amplitude $\approx$\SI{0.8}{\deci\bel}, against $\approx$\SI{1.2}{\deci\bel} for the control).
-We find the same results with orbits 1 and 52, with difference trends of $\approx$\SI{-0.3}{} and $\approx$\SI{-0.5}{\deci\bel\per\year} respectively, and in both orbits the restoration patch has a smaller annual cycle and a smaller drop during the drought.
+The largest departure from this cycle occurs during the drought of June 2023, when the mean backscatter of the control patch over June and July fell \SI{3.4}{\deci\bel} below its mean from mid-March to April, compared with \SI{2.1}{\deci\bel} for the restoration patch.
+The trend in the difference between the patches is \SI{-0.34 \pm 0.23}{\deci\bel\per\year}.
+However, the difference does not change steadily; it rises to \SI{+1.7}{\deci\bel} during the drought and falls to about \SI{-1}{\deci\bel} from February to April 2024, during a very wet late winter and spring \cite{metoffice}.
+The restoration patch also has a smaller annual cycle (amplitude $\approx$\SI{0.8}{\deci\bel}, against $\approx$\SI{1.2}{\deci\bel}).
+Orbits 1 and 52 give similar results, with difference trends of $\approx$\SI{-0.3}{} and $\approx$\SI{-0.5}{\deci\bel\per\year}.
 
 \subsection{Spatial pattern of trends}
-Over the moor as a whole, VV increased by \SI{+0.62 \pm 0.33}{\deci\bel\per\year} (orbit 103).
+Over the moor as a whole, VV increased by \SI{+0.62 \pm 0.33}{\deci\bel\per\year}.
 However, the orbits do not agree on this value ($\approx$\SI{+0.5}{\deci\bel\per\year} for orbit 52 and $\approx 0$ for orbit 1), and when the annual cycle is removed the increase appears to be mainly the recovery after the drop in June 2023.
-Local trends relative to the moor are weak (Fig.~\ref{fig:trendmap}).
-Of the 3801 cells, 90\% have local trends within $\approx\pm$\SI{0.5}{\deci\bel\per\year}, compared with a median standard error of $\approx$\SI{0.2}{\deci\bel\per\year}, and 16\% are significant.
-Of these, 129 cells (3.4\%; 70 brightening and 59 darkening) are robust, compared with about 7 expected if the orbits were independent.
-The largest clusters of robust cells are darkening at E215.6, N80.8\,km and on the eastern edge of the Crowdy restoration patch, and brightening at E217.7, N79.7\,km, E213.7, N76.1\,km and E215.4, N75.6\,km (British National Grid).
-We have not yet identified the causes of the clusters away from Crowdy.
+Local trends are weak (Fig.~\ref{fig:trendmap}); 90\% of the 3801 cells lie within $\approx\pm$\SI{0.5}{\deci\bel\per\year}, compared with a median standard error of $\approx$\SI{0.2}{\deci\bel\per\year}.
+In total, 129 cells (3.4\%) are robust, compared with about 7 expected if the orbits were independent, and these form a few clusters, one of which lies on the eastern edge of the Crowdy restoration patch.
 
 % ---------------------------------------------------------------------------
 \section{Discussion}
@@ -235,32 +197,26 @@ We have not yet identified the causes of the clusters away from Crowdy.
 
 \subsection{Main pattern}
 We do not find a trend in backscatter over 2023--2024 which can be attributed to a change in the peat.
-The moor-wide increase depends on the orbit used, and appears to be mostly the recovery from the June 2023 drought, followed by a wet 2024 (Section~\ref{sec:factor}).
-Local trends relative to the moor are weak, and we have not explained the few clusters of robust cells away from Crowdy; these should be checked against aerial imagery (for example, for felling of plantations) before they are interpreted.
-At Crowdy, the evidence comes mainly from the comparison of the two patches (Fig.~\ref{fig:timeseries}), since only 2 of the 48 cells in the restoration patch are robust in Fig.~\ref{fig:trendmap}.
-In all three orbits, the restoration patch has a smaller annual cycle and a smaller drop during the drought than the control and the moor as a whole.
-This may indicate a more stable water table following ditch blocking.
+Local trends are weak, and the clusters of robust cells away from Crowdy should be checked against aerial imagery (for example, for felling of plantations) before they are interpreted.
+At Crowdy, the evidence comes mainly from the comparison of the two patches (Fig.~\ref{fig:timeseries}), since only 2 of the 48 cells in the restoration patch are robust.
+The smaller response of the restoration patch may indicate a more stable water table following ditch blocking.
 Near-natural blanket bog has been found to have a smaller annual range of backscatter than previously drained bog \cite{toca2023potential}, and in Scotland, sites with blocked drains showed greater resistance to the 2018 drought than nearby near-natural sites in InSAR measurements of surface motion \cite{marshall2021naturescot}.
-The lower backscatter in the restoration patch in the wet spring of 2024 could be due to water ponding behind blocked ditches, which lowers backscatter \cite{asmuss2019potential}, although a change in the vegetation layer could have a similar effect \cite{hrysiewicz2023sar}.
+The lower backscatter in the restoration patch in spring 2024 could be due to water ponding behind blocked ditches, which lowers backscatter \cite{asmuss2019potential}, although a change in the vegetation layer could have a similar effect \cite{hrysiewicz2023sar}.
 
 \subsection{Factors affecting the apparent trend}
 \label{sec:factor}
 The main factor affecting the apparent trend is the timing of the June 2023 drought, which occurs early in a two-year record.
-A large drop near the start of the record followed by a wet year produces a positive moor-wide trend, without any lasting change in the peat.
-Similarly, a smaller drop at Crowdy produces a negative trend in the difference between the restoration and control patches.
-The difference rises to \SI{+1.7}{\deci\bel} during the drought and falls to about \SI{-1}{\deci\bel} in spring 2024 (Fig.~\ref{fig:timeseries}), so the fitted trend mainly reflects the different responses of the two patches to the drought.
+A large drop near the start of the record followed by a wet year produces a positive moor-wide trend without any lasting change in the peat, and in the same way the smaller drop at Crowdy produces a negative trend in the difference between the patches (Fig.~\ref{fig:timeseries}).
 The authors of \cite{marshall2021naturescot} note that short records of peat surface motion are also ``prone to influence of extreme weather events'', and suggest a baseline of about five years.
 
 \subsection{Field observation for interpretation}
-Measurements of water-table depth from dipwells in the restoration and control patches, taken at around the 12-day satellite interval, would allow us to test whether the smaller annual cycle in backscatter at Crowdy corresponds to a smaller range in water-table depth, using the relationship between backscatter and water-table depth found in \cite{toca2023potential}.
+Measurements of water-table depth in both patches, taken at around the 12-day satellite interval, would show whether the smaller annual cycle in backscatter at Crowdy corresponds to a smaller range in water-table depth.
 The South West Peatland Partnership already monitors water levels on Bodmin Moor \cite{swpp}, so some of these data may already be available.
 
 \subsection{Open questions}
-With only five acquisitions before the works began, we cannot determine whether the smaller response at Crowdy is due to the restoration or to some existing property of the site, which is next to Crowdy Reservoir.
-Extending the record back to 2015 would show whether the restoration patch also responded less than the control during the dry summers of 2018 and 2022 (drought was declared for Devon and Cornwall in August 2022 \cite{ea2022}), before the works began.
-We would also like to extend the analysis to the whole moor, grouping cells into zones by elevation and peat type, and to include daily rainfall data.
-We expect wetness to respond to rainfall within a few days, whereas changes in vegetation should be slower and more seasonal, so rainfall data may help to separate the two, in addition to a comparison of VV with VH.
-Finally, InSAR measurements of surface motion from the same satellite would provide a measure which responds directly to the water and gas content of the peat \cite{bradley2022identification}.
+With only five acquisitions before the works began, we cannot determine whether the smaller response at Crowdy is due to the restoration or to an existing property of the site, which is next to Crowdy Reservoir.
+Extending the record back to 2015 would show whether the restoration patch also responded less than the control during the dry summers of 2018 and 2022 \cite{ea2022}.
+We would also like to extend the analysis to the whole moor, in zones of similar elevation and peat type, and to include daily rainfall data, which may help to separate the effects of wetness and vegetation, together with a comparison of VV and VH.
 
 % ---------------------------------------------------------------------------
 \section*{Code and data availability}
@@ -300,11 +256,6 @@ Sentinel-1 data: Copernicus Sentinel data 2023--2024 \cite{torres2012}.
   linked to soil moisture changes on a temperate raised peatland subjected to a
   wildfire,'' \emph{Remote Sensing of Environment}, vol.~291, 113516, 2023.
 
-  \bibitem{millard2018quantifying}
-  K.~Millard and M.~Richardson, ``Quantifying the relative contributions of
-  vegetation and soil moisture conditions to polarimetric C-band SAR response in
-  a temperate peatland,'' \emph{Remote Sensing of Environment}, vol.~206,
-  pp.~123--138, 2018.
 
   \bibitem{nePeatMap}
   Natural England, ``England Peat Map'': \emph{England Peat Status, GHG and C
