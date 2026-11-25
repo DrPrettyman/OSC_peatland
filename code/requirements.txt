@@ -1,3 +1,8 @@
 earthengine-api
 requests
 python-dotenv
+numpy
+pandas
+rasterio
+matplotlib
+scipy
