@@ -58,6 +58,26 @@ python code/download_s1.py --dry-run
 python code/download_s1.py
 ```
 
+### Ancillary data (masking)
+
+Land-cover, peat and elevation layers used to build the moorland-peat mask, saved to `code/data/ancillary/`. Earth Engine layers are exported directly onto the Sentinel-1 grid (EPSG:27700, 10 m); peat-map polygons are rasterised onto the same grid by `make_mask.py`.
+
+```bash
+python code/download_peat_map.py    # England Peat Map layers (no Earth Engine needed)
+python code/download_ancillary.py   # WorldCover, Dynamic World, DEM (needs Earth Engine)
+python code/make_mask.py            # build code/data/ancillary/peat_mask.tif
+```
+
+| Layer | Source | How obtained | Used for |
+| --- | --- | --- | --- |
+| **England Peat Map: Peat Status, GHG and C storage** | Natural England; layer marked "© BGS & NSRI" | Natural England open-data ArcGIS feature service, queried by bounding box (`download_peat_map.py`) | Peat extent (shallow vs deep peaty soils) and land-use flags: improved grassland (IMP), afforested (AFF), woodland (WOD), linear features (REM) |
+| **England Peat Map: Peatland Restoration Register** | Natural England (compiled from EA, Nature for Climate grant scheme, Countryside Stewardship records) | Same service | Restoration polygons and start dates (Priddicombe, Crowdy, Stanning Hill, Stannon South); point records plotted with 1 km rings as areas to avoid for a comparison patch |
+| **ESA WorldCover v200** (2021, 10 m) | ESA (Zanaga et al., 2022) | Earth Engine `ESA/WorldCover/v200` (`download_ancillary.py`) | Trees, open water and built-up areas in the mask |
+| **Dynamic World V1** (modal class and mean tree probability, 2023–24) | Google / World Resources Institute (Brown et al., 2022, *Scientific Data*) | Earth Engine `GOOGLE/DYNAMICWORLD/V1` | Downloaded but not used: labels ~25% of the box as trees, which is implausible |
+| **Copernicus GLO-30 DEM** | ESA / Copernicus | Earth Engine `COPERNICUS/DEM/GLO30_2024_1` | Downloaded, not yet used |
+
+**To check:** the licence and required attribution for the England Peat Map layers (assumed Open Government Licence, not yet confirmed on Natural England's dataset pages), and the Zanaga and Brown citations before adding them to `references.bib`.
+
 ## Notes on Sentinel-1 Data
 
 Sentinel-1 beams a pulse of microwave radiation towards the earth (C-band, 5.405 GHz, so a wavelength of ~55 mm) and measures the amount of energy coming back (backscatter). At each pixel (a 10m by 10m patch), $\sigma^0$ is the backscatter coefficient in decibels on a log scale: $-10\text{dB}$ means $10\%$ of radiation power is returned; $-20\text{dB}$ means $1\%$ is returned. Sources: frequency and wavelength from ESA's [SentiWiki: S1 Mission](https://sentiwiki.copernicus.eu/web/s1-mission); the 10 m pixel size (IW mode), the conversion to dB as $10\log_{10}(\sigma^0)$, and the preprocessing (thermal noise removal, radiometric calibration, terrain correction) from the [Earth Engine catalogue: COPERNICUS/S1_GRD](https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S1_GRD). See also the [Earth Engine Sentinel-1 algorithms guide](https://developers.google.com/earth-engine/guides/sentinel1).
@@ -126,7 +146,34 @@ Bodmin Moor is a granite upland in north-east Cornwall, part of the same granite
 
 ***Restoration***: Bodmin Moor is one of four areas in the South West Peatland Partnership (SWPP), with Dartmoor, Exmoor and West Penwith. Partners on Bodmin include South West Water, the University of Exeter and Cornwall Wildlife Trust ([SWPP: Where we work](https://southwestpeatlandpartnership.co.uk/where-we-work)). Restoration uses "various ditch blocking techniques using sustainable materials (wood, peat, grass and heather)... on historic peat cuttings, drainage networks and eroding gullies" ([Cornwall National Landscape: Bodmin Moor Peatland project](https://cornwall-landscape.org/project/bodmin-moor-peatland-project/)).
 
-**Important:** An SWPP photo of works on Bodmin is labelled "Priddacombe Down restoration 2022". Priddacombe Downs is at about 50.568°N, 4.594°W ([OpenStreetMap](https://www.openstreetmap.org/search?query=Priddacombe%20Downs)), inside our study box. Rewetting just before our study period could show up as a trend: wetter peat gets brighter, but pooled water gets darker. I haven't found the exact boundaries or dates of the works. SWPP also says it monitors "the levels of water retained on the landscape" across Bodmin Moor, which could be a source of field data for interpreting our results.
+**Important:** An SWPP photo of works on Bodmin is labelled "Priddacombe Down restoration 2022". Priddacombe Downs is at about 50.568°N, 4.594°W ([OpenStreetMap](https://www.openstreetmap.org/search?query=Priddacombe%20Downs)), inside our study box. Rewetting just before our study period could show up as a trend: wetter peat gets brighter, but pooled water gets darker. The boundary and start date of the works are in Natural England's Peatland Restoration Register, as "Priddicombe" (see below). SWPP also says it monitors "the levels of water retained on the landscape" across Bodmin Moor, which could be a source of field data for interpreting our results.
+
+***Peatland Restoration Register records in our study box***: Natural England's England Peat Map includes a Peatland Restoration Register (see **Ancillary data** above; downloaded to `code/data/ancillary/restoration_register.geojson` by `download_peat_map.py`). Nine records fall in our box: four mapped polygons and five point records. Facts below come from the register's attribute fields (field names in brackets); statements marked *(our reading)* are interpretation, not register data.
+
+*The four polygons.* All four are from the Nature for Climate Peatland Grant Scheme 2021–25 (`Src_Data`; data provider Natural England), led by South West Water (`Lead_Org`), with an end date of March 2026 (`EndDate`). All are recorded before restoration as "Degraded Peatlands – not currently supporting semi-natural wetland vegetation" (`Hab_Base`) and as "D - Degraded" (`Resto_stg`).
+
+| Site (`RestoID`) | Area (`Hab_Amt`) | Works started (`Act_Date`) | Land use before (`GHG_LU`) | Target stage (`Resto_end`) | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Priddicombe | 89 ha | Jan 2022 | Grass-dominated modified bog, drained | Stage 3: Recovery | Actions include adjusting grazing/mowing. Matches the SWPP "Priddacombe Down restoration 2022" photo above: same name and date, and the register's grid reference is about 250 m from OpenStreetMap's Priddacombe Downs *(our reading)* |
+| Crowdy | 58 ha | Mar 2023 | Grass-dominated modified bog, drained | Stage 2: Stabilisation | East of Crowdy Reservoir *(from the map)* |
+| Stanning Hill | 9 ha | Mar 2023 | Forest, drained | Stage 2: Stabilisation | Actions include "Remove_plants", probably clearing trees or scrub given the forest land use *(our reading)* |
+| Stannon (South) | 6 ha | Sep 2022 | Grass-dominated modified bog, drained | Stage 2: Stabilisation | Next to the flooded Stannon pit *(from the map)* |
+
+The start dates are labelled "Date action started" (`Date_Type`) and look rounded to the month or year, so they mark when each project began, not when particular ditches were blocked. The listed actions (`Act_Desc`) are much the same at every site: manage the water table, prevent erosion, stabilise slumping, help peat form and store water, plus administrative steps (agreements, permissions, funding, contractors). In practice this means ditch and gully blocking to rewet the peat *(our reading, consistent with the Cornwall National Landscape description above)*. The target-stage scale ("D - Degraded", "Stage 2 - Stabilisation", "Stage 3 - Recovery") is the register's own; I haven't found its definitions yet.
+
+*The five points.* Point records give only a grid reference (stored as a 5 m circle), not the extent of the restored area, so we can't test them the way we test the polygons. They sit at three locations:
+
+| Location | Records | Source (`Src_Data`) | Area (`Hab_Amt`) | Dates | Description (`Act_Desc`) |
+| --- | --- | --- | --- | --- | --- |
+| E213679, N76713 (50.560°N, 4.632°W), south-west of the box | 2 | Environment Agency Conservation Projects Database | 1.2 + 5.24 ha | No start date; end date 31 Mar 2021 (`EndDate`) | "Creating and restoring upland habitats across the SW upland peatlands ... across 12 waterbodies"; habitat "Blanket bog priority habitat" (`Hab_Type`) |
+| E218857, N77541 (50.570°N, 4.559°W), south-east of the box | 2 | Environment Agency Conservation Projects Database | 45 + 53 ha | As above | As above |
+| E216280, N77380 (50.567°N, 4.596°W), inside the Priddicombe polygon | 1 | Countryside Stewardship (data provider Rural Payments Agency) | 39.5 ha | Legal agreement Jan 2024 to Dec 2033 | "UP5 - Moorland re-wetting supplement" |
+
+The Countryside Stewardship agreement means rewetting payments at Priddicombe run through 2024. The Environment Agency records are part of a programme spanning 12 waterbodies, so their grid references may be nominal project locations rather than the centre of the work *(our reading)*.
+
+How we use them: the points are plotted on the mask map in `code/eda.ipynb` (via `plot_helpers.plot_restoration_areas`) with a dashed **1 km ring** around each location. The ring is an area to avoid when choosing a comparison (control) patch, since restoration may have happened anywhere near the point. 1 km is a judgement: the largest location totals about 98 ha, a circle of about 0.56 km radius, so 1 km leaves a margin for the unknown shape and position of the work. It's set by `POINT_BUFFER_KM` in the notebook.
+
+Implication for choosing a comparison patch: all three point locations, Priddicombe and Stanning Hill lie in the southern strip of the box (N75.5–78.5 km), so a comparison patch should come from further north. The open moor at roughly E216–219, N80–83 km is well clear of every point; Crowdy, about 1.5–2 km away, is the nearest restoration site. The local-trend analysis (`code/local_trend.py`) also found anomalies in or beside that area, which a *representative* patch should avoid: darkening at about E215.5, N81 and in the north-east (E218.5–219.5, N82–82.8), and brightening around E217.7, N79.7.
 
 N.B. The Cornwall National Landscape project page's figure of "35 hectares of moor at Park Pitt and Blackadon" covers the wider Bodmin–Dartmoor–Exmoor project. Blackadon Tor is on Dartmoor, so don't quote it as Bodmin restoration.
 
@@ -146,10 +193,11 @@ I didn't find any reports of moorland fires on Bodmin in 2023–2024. The arson 
 
 ***Things to check***:
 
-- The extent and dates of the Priddacombe restoration. Look for it in the trend map.
+- ~~The extent and dates of the Priddacombe restoration.~~ Found in the Peatland Restoration Register (above). Still to do: look for it in the trend map.
 - Whether any conifer plantations in our box were felled in 2023–2024. Felling would show up as a large change in VV; compare with Google Earth or Sentinel-2 imagery.
-- Mask out Crowdy Reservoir, Stannon Lake and the forestry blocks before mapping trends.
-- Find a peat extent map to define a proper study boundary, instead of the bounding box.
+- ~~Mask out Crowdy Reservoir, Stannon Lake and the forestry blocks before mapping trends.~~ Done in `code/make_mask.py` (see **Ancillary data** above).
+- ~~Find a peat extent map to define a proper study boundary, instead of the bounding box.~~ England Peat Map peat extent, used in the mask.
+- Choose a comparison patch clear of the restoration polygons and the 1 km rings around the point records (see the five points above).
 
 ## Notes on the literature and InSAR
 
