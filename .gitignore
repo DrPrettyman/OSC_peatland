@@ -1,0 +1,148 @@
+# ===================== OS / Editors =====================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===================== Python =====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Packaging / build
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+wheels/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+.conda/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Testing / coverage / type checking / linting
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.dmypy.json
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ===================== LaTeX =====================
+# Core auxiliary files
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+*.lb
+
+# Build outputs
+*.dvi
+*.xdv
+*-converted-to.*
+# Uncomment to ignore compiled write-up PDFs
+# write_up/*.pdf
+
+# Task brief
+OSC_Peatland_Interview_Task.pdf
+
+# Bibliography
+*.bbl
+*.bbl-SAVE-ERROR
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+# Build tools
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+*.rubbercache
+rubber.cache
+latex.out/
+
+# Common packages
+*.nav
+*.snm
+*.vrb
+*.acn
+*.acr
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.ist
+*.idx
+*.ilg
+*.ind
+*.alg
+*.loa
+*.thm
+*.xcp
+*.xwm
+*.figlist
+*.makefile
+*.auxlock
+*.tdo
+*.brf
+*.loe
+*.lol
+*.mtc
+*.mtc[0-9]*
+*.slf[0-9]*
+*.slt[0-9]*
+*.stc[0-9]*
+*.maf
+*.ptc
+*.listing
+*.pyg
+_minted*
+*.upa
+*.upb
+*.vtc
+*.pytxcode
+pythontex-files-*/
+*-tikzDictionary
+*.dpth
+*.md5
+svg-inkscape/
