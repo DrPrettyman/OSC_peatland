@@ -6,3 +6,4 @@ pandas
 rasterio
 matplotlib
 scipy
+jupyter
