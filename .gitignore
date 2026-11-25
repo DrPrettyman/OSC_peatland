@@ -11,6 +11,8 @@ Desktop.ini
 *.swo
 *~
 
+notes/
+
 # ===================== Python =====================
 __pycache__/
 *.py[cod]
